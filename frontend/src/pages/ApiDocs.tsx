@@ -20,7 +20,8 @@ import {
   Rule,
   Storage,
 } from '@mui/icons-material';
-import ReactJson from 'react-json-view';
+import JSONPretty from 'react-json-pretty';
+import 'react-json-pretty/themes/monikai.css';
 import { reasoningService } from '../services/reasoningService';
 
 interface TabPanelProps {
@@ -188,14 +189,9 @@ const ApiDocs: React.FC = () => {
                       <Typography variant="caption" fontWeight="bold">
                         Example Request:
                       </Typography>
-                      <ReactJson
-                        src={endpoint.example}
-                        name={false}
-                        theme="monokai"
+                      <JSONPretty
+                        data={endpoint.example}
                         style={{ backgroundColor: 'transparent' }}
-                        displayDataTypes={false}
-                        displayObjectSize={false}
-                        enableClipboard={false}
                       />
                     </Box>
                   )}
@@ -224,56 +220,36 @@ const ApiDocs: React.FC = () => {
 
               <TabPanel value={tabValue} index={0}>
                 {healthData && (
-                  <ReactJson
-                    src={healthData}
-                    name={false}
-                    theme="monokai"
+                  <JSONPretty
+                    data={healthData}
                     style={{ backgroundColor: 'transparent' }}
-                    displayDataTypes={false}
-                    displayObjectSize={false}
-                    enableClipboard={false}
                   />
                 )}
               </TabPanel>
 
               <TabPanel value={tabValue} index={1}>
                 {rulesData && (
-                  <ReactJson
-                    src={rulesData}
-                    name={false}
-                    theme="monokai"
+                  <JSONPretty
+                    data={rulesData}
                     style={{ backgroundColor: 'transparent' }}
-                    displayDataTypes={false}
-                    displayObjectSize={false}
-                    enableClipboard={false}
                   />
                 )}
               </TabPanel>
 
               <TabPanel value={tabValue} index={2}>
                 {knowledgeData && (
-                  <ReactJson
-                    src={knowledgeData}
-                    name={false}
-                    theme="monokai"
+                  <JSONPretty
+                    data={knowledgeData}
                     style={{ backgroundColor: 'transparent' }}
-                    displayDataTypes={false}
-                    displayObjectSize={false}
-                    enableClipboard={false}
                   />
                 )}
               </TabPanel>
 
               <TabPanel value={tabValue} index={3}>
                 {capabilitiesData && (
-                  <ReactJson
-                    src={capabilitiesData}
-                    name={false}
-                    theme="monokai"
+                  <JSONPretty
+                    data={capabilitiesData}
                     style={{ backgroundColor: 'transparent' }}
-                    displayDataTypes={false}
-                    displayObjectSize={false}
-                    enableClipboard={false}
                   />
                 )}
               </TabPanel>

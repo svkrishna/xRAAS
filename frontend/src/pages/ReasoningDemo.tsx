@@ -27,7 +27,8 @@ import {
   Storage,
   CheckCircle,
 } from '@mui/icons-material';
-import ReactJson from 'react-json-view';
+import JSONPretty from 'react-json-pretty';
+import 'react-json-pretty/themes/monikai.css';
 import { reasoningService } from '../services/reasoningService';
 
 interface ReasoningTrace {
@@ -309,14 +310,9 @@ const ReasoningDemo: React.FC = () => {
                           <Typography variant="caption" fontWeight="bold">
                             Metadata:
                           </Typography>
-                          <ReactJson
-                            src={trace.metadata}
-                            name={false}
-                            theme="monokai"
+                          <JSONPretty
+                            data={trace.metadata}
                             style={{ backgroundColor: 'transparent' }}
-                            displayDataTypes={false}
-                            displayObjectSize={false}
-                            enableClipboard={false}
                           />
                         </Box>
                       )}
@@ -330,14 +326,9 @@ const ReasoningDemo: React.FC = () => {
                     <Typography variant="h6" gutterBottom>
                       Response Metadata
                     </Typography>
-                    <ReactJson
-                      src={response.metadata}
-                      name={false}
-                      theme="monokai"
+                    <JSONPretty
+                      data={response.metadata}
                       style={{ backgroundColor: 'transparent' }}
-                      displayDataTypes={false}
-                      displayObjectSize={false}
-                      enableClipboard={false}
                     />
                   </Box>
                 )}

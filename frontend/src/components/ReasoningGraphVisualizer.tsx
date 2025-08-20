@@ -242,7 +242,7 @@ const ReasoningGraphVisualizer: React.FC<ReasoningGraphVisualizerProps> = ({
     }
   });
 
-  const layout = {
+  const layout: any = {
     title: {
       text: 'Reasoning Graph Visualization',
       font: { size: 16 },
@@ -268,7 +268,7 @@ const ReasoningGraphVisualizer: React.FC<ReasoningGraphVisualizerProps> = ({
     height: height - 100,
   };
 
-  const config = {
+  const config: any = {
     displayModeBar: true,
     displaylogo: false,
     modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d'],
