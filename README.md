@@ -124,7 +124,19 @@ npm install
 npm start
 ```
 
-## 📊 Use Cases
+## 📊 Use Cases & Pilots
+
+### Legal Compliance Pilot
+- **GDPR Compliance**: Analyze privacy policies and data handling practices
+- **HIPAA Compliance**: Validate healthcare data protection measures
+- **Contract Analysis**: Review contracts for key provisions and risks
+- **Example**: "Is this privacy policy compliant with GDPR Article 7?"
+
+### Scientific Validation Pilot
+- **Mathematical Consistency**: Validate calculations and formulas
+- **Statistical Validity**: Check statistical analysis and interpretations
+- **Research Methodology**: Assess research design and methodology
+- **Example**: "Is this statistical analysis methodologically sound?"
 
 ### Healthcare (HIPAA Compliance)
 - Policy engine for HIPAA compliance checks
@@ -193,6 +205,8 @@ npm test
 - ✅ End-to-end reasoning trace is interpretable
 - ✅ Domain pilot shows LLM errors caught by symbolic layer
 - ✅ Positive feedback from vertical pilots
+- ✅ Legal and scientific pilots demonstrate domain expertise
+- ✅ SDK enables developer integration in <30 minutes
 
 ## 📝 API Documentation
 
@@ -203,6 +217,61 @@ The API documentation is available at `/docs` when the backend is running.
 - `POST /reason` - Main reasoning endpoint
 - `GET /health` - Health check
 - `GET /rules` - Available rule sets
+
+### Pilot Endpoints
+
+- `POST /api/v1/pilots/legal/gdpr` - GDPR compliance analysis
+- `POST /api/v1/pilots/legal/hipaa` - HIPAA compliance analysis
+- `POST /api/v1/pilots/legal/contract` - Contract analysis
+- `POST /api/v1/pilots/scientific/mathematics` - Mathematical consistency
+- `POST /api/v1/pilots/scientific/statistics` - Statistical validity
+- `POST /api/v1/pilots/scientific/methodology` - Research methodology
+
+## 🛠️ SDK & Development
+
+### Python SDK
+
+XReason provides a comprehensive Python SDK for easy integration:
+
+```bash
+pip install xreason-sdk
+```
+
+```python
+import asyncio
+from xreason_sdk import XReasonClient
+
+async def main():
+    async with XReasonClient("http://localhost:8000") as client:
+        # Legal compliance analysis
+        gdpr_analysis = await client.analyze_gdpr_compliance(
+            text="We collect user data for marketing purposes..."
+        )
+        print(f"GDPR Compliant: {gdpr_analysis.is_compliant}")
+        
+        # Scientific validation
+        math_analysis = await client.analyze_mathematical_consistency(
+            text="F = m * a = 5 * 2 = 10 N"
+        )
+        print(f"Mathematically Valid: {math_analysis.is_valid}")
+
+asyncio.run(main())
+```
+
+### Demo Scripts
+
+Run the pilot demo to see the system in action:
+
+```bash
+# Setup development environment (first time only)
+./scripts/setup-dev.sh
+
+# Run the demo
+./scripts/run-demo.sh
+
+# Or run directly with virtual environment
+.venv/bin/python examples/pilot_demo.py
+```
 
 ## 🤝 Contributing
 
