@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Any, Union
 from urllib.parse import urljoin
 
 from .models import (
-    ReasoningRequest, ReasoningResponse,
+    CybersecurityAnalysisRequest, CybersecurityAnalysisResponse, FinanceAnalysisRequest, FinanceAnalysisResponse, HealthcareAnalysisRequest, HealthcareAnalysisResponse, ManufacturingAnalysisRequest, ManufacturingAnalysisResponse, ReasoningRequest, ReasoningResponse,
     LegalAnalysisRequest, LegalAnalysisResponse,
     ScientificAnalysisRequest, ScientificAnalysisResponse,
     PilotSummaryResponse
@@ -383,6 +383,303 @@ class XReasonClient:
         
         return {
             domain: ScientificAnalysisResponse(**analysis_data)
+            for domain, analysis_data in response_data.items()
+        }
+
+    # Healthcare Compliance Methods
+    async def analyze_hipaa_compliance(
+        self,
+        text: str,
+        context: Optional[Dict[str, Any]] = None
+    ) -> HealthcareAnalysisResponse:
+        """
+        Analyze HIPAA compliance of given text.
+        
+        Args:
+            text: Text to analyze for HIPAA compliance
+            context: Additional context for analysis
+            
+        Returns:
+            HealthcareAnalysisResponse with HIPAA analysis results
+        """
+        request_data = HealthcareAnalysisRequest(
+            text=text,
+            domains=["hipaa"],
+            context=context
+        ).dict(exclude_none=True)
+        
+        response_data = await self._make_request(
+            method="POST",
+            endpoint="/api/v1/pilots/healthcare/hipaa",
+            data=request_data
+        )
+        
+        return HealthcareAnalysisResponse(**response_data)
+
+    async def analyze_fda_compliance(
+        self,
+        text: str,
+        context: Optional[Dict[str, Any]] = None
+    ) -> HealthcareAnalysisResponse:
+        """
+        Analyze FDA compliance of given text.
+        
+        Args:
+            text: Text to analyze for FDA compliance
+            context: Additional context for analysis
+            
+        Returns:
+            HealthcareAnalysisResponse with FDA analysis results
+        """
+        request_data = HealthcareAnalysisRequest(
+            text=text,
+            domains=["fda"],
+            context=context
+        ).dict(exclude_none=True)
+        
+        response_data = await self._make_request(
+            method="POST",
+            endpoint="/api/v1/pilots/healthcare/fda",
+            data=request_data
+        )
+        
+        return HealthcareAnalysisResponse(**response_data)
+
+    async def analyze_healthcare_compliance(
+        self,
+        text: str,
+        domains: Optional[List[str]] = None,
+        context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, HealthcareAnalysisResponse]:
+        """
+        Analyze healthcare compliance across multiple domains.
+        
+        Args:
+            text: Text to analyze
+            domains: List of healthcare domains to analyze
+            context: Additional context for analysis
+            
+        Returns:
+            Dictionary of HealthcareAnalysisResponse by domain
+        """
+        if domains is None:
+            domains = ["hipaa", "fda", "clinical_trials"]
+        
+        request_data = HealthcareAnalysisRequest(
+            text=text,
+            domains=domains,
+            context=context
+        ).dict(exclude_none=True)
+        
+        response_data = await self._make_request(
+            method="POST",
+            endpoint="/api/v1/pilots/healthcare/comprehensive",
+            data=request_data
+        )
+        
+        return {
+            domain: HealthcareAnalysisResponse(**analysis_data)
+            for domain, analysis_data in response_data.items()
+        }
+
+    # Finance Compliance Methods
+    async def analyze_banking_compliance(
+        self,
+        text: str,
+        context: Optional[Dict[str, Any]] = None
+    ) -> FinanceAnalysisResponse:
+        """
+        Analyze banking compliance of given text.
+        
+        Args:
+            text: Text to analyze for banking compliance
+            context: Additional context for analysis
+            
+        Returns:
+            FinanceAnalysisResponse with banking analysis results
+        """
+        request_data = FinanceAnalysisRequest(
+            text=text,
+            domains=["banking"],
+            context=context
+        ).dict(exclude_none=True)
+        
+        response_data = await self._make_request(
+            method="POST",
+            endpoint="/api/v1/pilots/finance/banking",
+            data=request_data
+        )
+        
+        return FinanceAnalysisResponse(**response_data)
+
+    async def analyze_finance_compliance(
+        self,
+        text: str,
+        domains: Optional[List[str]] = None,
+        context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, FinanceAnalysisResponse]:
+        """
+        Analyze finance compliance across multiple domains.
+        
+        Args:
+            text: Text to analyze
+            domains: List of finance domains to analyze
+            context: Additional context for analysis
+            
+        Returns:
+            Dictionary of FinanceAnalysisResponse by domain
+        """
+        if domains is None:
+            domains = ["banking", "investment", "aml_kyc"]
+        
+        request_data = FinanceAnalysisRequest(
+            text=text,
+            domains=domains,
+            context=context
+        ).dict(exclude_none=True)
+        
+        response_data = await self._make_request(
+            method="POST",
+            endpoint="/api/v1/pilots/finance/comprehensive",
+            data=request_data
+        )
+        
+        return {
+            domain: FinanceAnalysisResponse(**analysis_data)
+            for domain, analysis_data in response_data.items()
+        }
+
+    # Manufacturing Compliance Methods
+    async def analyze_quality_control(
+        self,
+        text: str,
+        context: Optional[Dict[str, Any]] = None
+    ) -> ManufacturingAnalysisResponse:
+        """
+        Analyze quality control compliance of given text.
+        
+        Args:
+            text: Text to analyze for quality control compliance
+            context: Additional context for analysis
+            
+        Returns:
+            ManufacturingAnalysisResponse with quality control analysis results
+        """
+        request_data = ManufacturingAnalysisRequest(
+            text=text,
+            domains=["quality_control"],
+            context=context
+        ).dict(exclude_none=True)
+        
+        response_data = await self._make_request(
+            method="POST",
+            endpoint="/api/v1/pilots/manufacturing/quality-control",
+            data=request_data
+        )
+        
+        return ManufacturingAnalysisResponse(**response_data)
+
+    async def analyze_manufacturing_compliance(
+        self,
+        text: str,
+        domains: Optional[List[str]] = None,
+        context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, ManufacturingAnalysisResponse]:
+        """
+        Analyze manufacturing compliance across multiple domains.
+        
+        Args:
+            text: Text to analyze
+            domains: List of manufacturing domains to analyze
+            context: Additional context for analysis
+            
+        Returns:
+            Dictionary of ManufacturingAnalysisResponse by domain
+        """
+        if domains is None:
+            domains = ["quality_control", "safety_standards", "environmental"]
+        
+        request_data = ManufacturingAnalysisRequest(
+            text=text,
+            domains=domains,
+            context=context
+        ).dict(exclude_none=True)
+        
+        response_data = await self._make_request(
+            method="POST",
+            endpoint="/api/v1/pilots/manufacturing/comprehensive",
+            data=request_data
+        )
+        
+        return {
+            domain: ManufacturingAnalysisResponse(**analysis_data)
+            for domain, analysis_data in response_data.items()
+        }
+
+    # Cybersecurity Compliance Methods
+    async def analyze_security_frameworks(
+        self,
+        text: str,
+        context: Optional[Dict[str, Any]] = None
+    ) -> CybersecurityAnalysisResponse:
+        """
+        Analyze security frameworks compliance of given text.
+        
+        Args:
+            text: Text to analyze for security frameworks compliance
+            context: Additional context for analysis
+            
+        Returns:
+            CybersecurityAnalysisResponse with security frameworks analysis results
+        """
+        request_data = CybersecurityAnalysisRequest(
+            text=text,
+            domains=["security_frameworks"],
+            context=context
+        ).dict(exclude_none=True)
+        
+        response_data = await self._make_request(
+            method="POST",
+            endpoint="/api/v1/pilots/cybersecurity/security-frameworks",
+            data=request_data
+        )
+        
+        return CybersecurityAnalysisResponse(**response_data)
+
+    async def analyze_cybersecurity_compliance(
+        self,
+        text: str,
+        domains: Optional[List[str]] = None,
+        context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, CybersecurityAnalysisResponse]:
+        """
+        Analyze cybersecurity compliance across multiple domains.
+        
+        Args:
+            text: Text to analyze
+            domains: List of cybersecurity domains to analyze
+            context: Additional context for analysis
+            
+        Returns:
+            Dictionary of CybersecurityAnalysisResponse by domain
+        """
+        if domains is None:
+            domains = ["security_frameworks", "threat_detection", "incident_response"]
+        
+        request_data = CybersecurityAnalysisRequest(
+            text=text,
+            domains=domains,
+            context=context
+        ).dict(exclude_none=True)
+        
+        response_data = await self._make_request(
+            method="POST",
+            endpoint="/api/v1/pilots/cybersecurity/comprehensive",
+            data=request_data
+        )
+        
+        return {
+            domain: CybersecurityAnalysisResponse(**analysis_data)
             for domain, analysis_data in response_data.items()
         }
     

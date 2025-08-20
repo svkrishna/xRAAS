@@ -23,6 +23,11 @@ class ScientificDomain(Enum):
     BIOLOGY = "biology"
     RESEARCH = "research"
     METHODOLOGY = "methodology"
+    COMPUTER_SCIENCE = "computer_science"
+    ENGINEERING = "engineering"
+    MEDICINE = "medicine"
+    PSYCHOLOGY = "psychology"
+    ECONOMICS = "economics"
 
 
 @dataclass
@@ -59,6 +64,14 @@ class ScientificValidationPilot:
         self.statistical_rules = self._load_statistical_rules()
         self.research_rules = self._load_research_rules()
         self.methodology_rules = self._load_methodology_rules()
+        self.physics_rules = self._load_physics_rules()
+        self.chemistry_rules = self._load_chemistry_rules()
+        self.biology_rules = self._load_biology_rules()
+        self.computer_science_rules = self._load_computer_science_rules()
+        self.engineering_rules = self._load_engineering_rules()
+        self.medicine_rules = self._load_medicine_rules()
+        self.psychology_rules = self._load_psychology_rules()
+        self.economics_rules = self._load_economics_rules()
         
     def _load_math_rules(self) -> Dict[str, Dict]:
         """Load mathematical validation rules."""
@@ -188,6 +201,270 @@ class ScientificValidationPilot:
                 "description": "Check for validity assessment",
                 "severity": "high",
                 "keywords": ["validity", "internal validity", "external validity", "construct validity"]
+            }
+        }
+    
+    def _load_physics_rules(self) -> Dict[str, Dict]:
+        """Load physics validation rules."""
+        return {
+            "conservation_laws": {
+                "name": "Conservation Laws",
+                "description": "Check for conservation of energy, momentum, and mass",
+                "severity": "high",
+                "keywords": ["conservation", "energy", "momentum", "mass", "law of conservation"],
+                "formula_reference": "Conservation principles"
+            },
+            "dimensional_analysis": {
+                "name": "Dimensional Analysis",
+                "description": "Check for proper dimensional analysis",
+                "severity": "medium",
+                "keywords": ["dimension", "unit", "dimensional analysis", "si units"],
+                "formula_reference": "Dimensional analysis"
+            },
+            "newton_laws": {
+                "name": "Newton's Laws",
+                "description": "Check for proper application of Newton's laws",
+                "severity": "high",
+                "keywords": ["newton", "force", "acceleration", "action", "reaction"],
+                "formula_reference": "Newton's laws of motion"
+            },
+            "thermodynamics": {
+                "name": "Thermodynamics",
+                "description": "Check for thermodynamic principles",
+                "severity": "high",
+                "keywords": ["thermodynamics", "entropy", "energy", "heat", "work"],
+                "formula_reference": "Laws of thermodynamics"
+            }
+        }
+    
+    def _load_chemistry_rules(self) -> Dict[str, Dict]:
+        """Load chemistry validation rules."""
+        return {
+            "chemical_equations": {
+                "name": "Chemical Equation Balance",
+                "description": "Check for balanced chemical equations",
+                "severity": "high",
+                "keywords": ["chemical equation", "balance", "stoichiometry", "reaction"],
+                "formula_reference": "Chemical stoichiometry"
+            },
+            "molecular_structure": {
+                "name": "Molecular Structure",
+                "description": "Check for valid molecular structures",
+                "severity": "medium",
+                "keywords": ["molecular", "structure", "bond", "valence", "electron"],
+                "formula_reference": "Molecular bonding"
+            },
+            "reaction_kinetics": {
+                "name": "Reaction Kinetics",
+                "description": "Check for reaction kinetics principles",
+                "severity": "medium",
+                "keywords": ["kinetics", "rate", "reaction rate", "catalyst", "activation energy"],
+                "formula_reference": "Chemical kinetics"
+            },
+            "equilibrium": {
+                "name": "Chemical Equilibrium",
+                "description": "Check for equilibrium principles",
+                "severity": "high",
+                "keywords": ["equilibrium", "equilibrium constant", "le chatelier", "concentration"],
+                "formula_reference": "Chemical equilibrium"
+            }
+        }
+    
+    def _load_biology_rules(self) -> Dict[str, Dict]:
+        """Load biology validation rules."""
+        return {
+            "cell_biology": {
+                "name": "Cell Biology",
+                "description": "Check for cell biology principles",
+                "severity": "medium",
+                "keywords": ["cell", "membrane", "organelle", "mitochondria", "nucleus"],
+                "formula_reference": "Cell biology"
+            },
+            "genetics": {
+                "name": "Genetics",
+                "description": "Check for genetic principles",
+                "severity": "high",
+                "keywords": ["gene", "dna", "rna", "mutation", "inheritance", "allele"],
+                "formula_reference": "Mendelian genetics"
+            },
+            "evolution": {
+                "name": "Evolution",
+                "description": "Check for evolutionary principles",
+                "severity": "medium",
+                "keywords": ["evolution", "natural selection", "adaptation", "speciation"],
+                "formula_reference": "Evolutionary theory"
+            },
+            "ecology": {
+                "name": "Ecology",
+                "description": "Check for ecological principles",
+                "severity": "medium",
+                "keywords": ["ecosystem", "population", "community", "biodiversity", "food web"],
+                "formula_reference": "Ecological principles"
+            }
+        }
+    
+    def _load_computer_science_rules(self) -> Dict[str, Dict]:
+        """Load computer science validation rules."""
+        return {
+            "algorithm_complexity": {
+                "name": "Algorithm Complexity",
+                "description": "Check for proper algorithm complexity analysis",
+                "severity": "high",
+                "keywords": ["algorithm", "complexity", "big o", "time complexity", "space complexity"],
+                "formula_reference": "Computational complexity theory"
+            },
+            "data_structures": {
+                "name": "Data Structures",
+                "description": "Check for appropriate data structure usage",
+                "severity": "medium",
+                "keywords": ["data structure", "array", "linked list", "tree", "graph", "hash table"],
+                "formula_reference": "Data structure theory"
+            },
+            "software_engineering": {
+                "name": "Software Engineering",
+                "description": "Check for software engineering principles",
+                "severity": "medium",
+                "keywords": ["software engineering", "design pattern", "modularity", "testing", "documentation"],
+                "formula_reference": "Software engineering principles"
+            },
+            "artificial_intelligence": {
+                "name": "Artificial Intelligence",
+                "description": "Check for AI/ML principles",
+                "severity": "medium",
+                "keywords": ["machine learning", "neural network", "algorithm", "training", "validation"],
+                "formula_reference": "Machine learning theory"
+            }
+        }
+    
+    def _load_engineering_rules(self) -> Dict[str, Dict]:
+        """Load engineering validation rules."""
+        return {
+            "structural_analysis": {
+                "name": "Structural Analysis",
+                "description": "Check for structural engineering principles",
+                "severity": "high",
+                "keywords": ["structural", "load", "stress", "strain", "safety factor"],
+                "formula_reference": "Structural mechanics"
+            },
+            "fluid_dynamics": {
+                "name": "Fluid Dynamics",
+                "description": "Check for fluid dynamics principles",
+                "severity": "medium",
+                "keywords": ["fluid", "flow", "pressure", "velocity", "bernoulli"],
+                "formula_reference": "Fluid mechanics"
+            },
+            "electrical_circuits": {
+                "name": "Electrical Circuits",
+                "description": "Check for electrical circuit principles",
+                "severity": "high",
+                "keywords": ["circuit", "voltage", "current", "resistance", "ohm's law"],
+                "formula_reference": "Electrical circuit theory"
+            },
+            "control_systems": {
+                "name": "Control Systems",
+                "description": "Check for control system principles",
+                "severity": "medium",
+                "keywords": ["control system", "feedback", "stability", "transfer function"],
+                "formula_reference": "Control theory"
+            }
+        }
+    
+    def _load_medicine_rules(self) -> Dict[str, Dict]:
+        """Load medicine validation rules."""
+        return {
+            "clinical_trials": {
+                "name": "Clinical Trial Design",
+                "description": "Check for proper clinical trial design",
+                "severity": "high",
+                "keywords": ["clinical trial", "randomized", "placebo", "double-blind", "protocol"],
+                "formula_reference": "Clinical trial methodology"
+            },
+            "epidemiology": {
+                "name": "Epidemiology",
+                "description": "Check for epidemiological principles",
+                "severity": "medium",
+                "keywords": ["epidemiology", "incidence", "prevalence", "risk factor", "cohort"],
+                "formula_reference": "Epidemiological methods"
+            },
+            "pharmacology": {
+                "name": "Pharmacology",
+                "description": "Check for pharmacological principles",
+                "severity": "high",
+                "keywords": ["pharmacology", "dose", "concentration", "half-life", "metabolism"],
+                "formula_reference": "Pharmacokinetics"
+            },
+            "anatomy_physiology": {
+                "name": "Anatomy and Physiology",
+                "description": "Check for anatomical and physiological principles",
+                "severity": "medium",
+                "keywords": ["anatomy", "physiology", "organ", "system", "function"],
+                "formula_reference": "Human anatomy and physiology"
+            }
+        }
+    
+    def _load_psychology_rules(self) -> Dict[str, Dict]:
+        """Load psychology validation rules."""
+        return {
+            "experimental_design": {
+                "name": "Experimental Design",
+                "description": "Check for proper experimental design in psychology",
+                "severity": "high",
+                "keywords": ["experimental design", "independent variable", "dependent variable", "control"],
+                "formula_reference": "Psychological research methods"
+            },
+            "cognitive_psychology": {
+                "name": "Cognitive Psychology",
+                "description": "Check for cognitive psychology principles",
+                "severity": "medium",
+                "keywords": ["cognitive", "memory", "attention", "perception", "learning"],
+                "formula_reference": "Cognitive psychology theory"
+            },
+            "behavioral_analysis": {
+                "name": "Behavioral Analysis",
+                "description": "Check for behavioral analysis principles",
+                "severity": "medium",
+                "keywords": ["behavior", "reinforcement", "conditioning", "stimulus", "response"],
+                "formula_reference": "Behavioral psychology"
+            },
+            "psychometrics": {
+                "name": "Psychometrics",
+                "description": "Check for psychometric principles",
+                "severity": "medium",
+                "keywords": ["psychometrics", "reliability", "validity", "test", "measurement"],
+                "formula_reference": "Psychometric theory"
+            }
+        }
+    
+    def _load_economics_rules(self) -> Dict[str, Dict]:
+        """Load economics validation rules."""
+        return {
+            "microeconomics": {
+                "name": "Microeconomics",
+                "description": "Check for microeconomic principles",
+                "severity": "medium",
+                "keywords": ["supply", "demand", "price", "market", "elasticity", "utility"],
+                "formula_reference": "Microeconomic theory"
+            },
+            "macroeconomics": {
+                "name": "Macroeconomics",
+                "description": "Check for macroeconomic principles",
+                "severity": "medium",
+                "keywords": ["gdp", "inflation", "unemployment", "monetary policy", "fiscal policy"],
+                "formula_reference": "Macroeconomic theory"
+            },
+            "econometrics": {
+                "name": "Econometrics",
+                "description": "Check for econometric methods",
+                "severity": "high",
+                "keywords": ["regression", "correlation", "causation", "endogeneity", "heteroscedasticity"],
+                "formula_reference": "Econometric methods"
+            },
+            "game_theory": {
+                "name": "Game Theory",
+                "description": "Check for game theory principles",
+                "severity": "medium",
+                "keywords": ["game theory", "nash equilibrium", "strategy", "payoff", "dominant strategy"],
+                "formula_reference": "Game theory"
             }
         }
     

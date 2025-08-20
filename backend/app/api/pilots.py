@@ -8,6 +8,10 @@ from pydantic import BaseModel, Field
 
 from app.pilots.legal_compliance import legal_pilot, LegalDomain, LegalAnalysis
 from app.pilots.scientific_validation import scientific_pilot, ScientificDomain, ScientificAnalysis
+from app.pilots.healthcare_compliance import healthcare_pilot, HealthcareDomain, HealthcareAnalysis
+from app.pilots.finance_compliance import finance_pilot, FinanceDomain, FinanceAnalysis
+from app.pilots.manufacturing_compliance import manufacturing_pilot, ManufacturingDomain, ManufacturingAnalysis
+from app.pilots.cybersecurity_compliance import cybersecurity_pilot, CybersecurityDomain, CybersecurityAnalysis
 from app.services.metrics_service import metrics_service
 
 router = APIRouter(prefix="/pilots", tags=["pilots"])
@@ -60,9 +64,105 @@ class ScientificAnalysisResponse(BaseModel):
     metadata: Dict[str, Any]
 
 
+class HealthcareAnalysisRequest(BaseModel):
+    text: str = Field(..., description="Text to analyze for healthcare compliance")
+    domains: Optional[List[str]] = Field(
+        default=["hipaa", "fda", "clinical_trials"],
+        description="Healthcare domains to analyze"
+    )
+    context: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Additional context for analysis"
+    )
+
+
+class HealthcareAnalysisResponse(BaseModel):
+    domain: str
+    is_compliant: bool
+    confidence: float
+    violations: List[Dict[str, Any]]
+    recommendations: List[str]
+    risk_score: float
+    analysis_timestamp: str
+    metadata: Dict[str, Any]
+
+
+class FinanceAnalysisRequest(BaseModel):
+    text: str = Field(..., description="Text to analyze for finance compliance")
+    domains: Optional[List[str]] = Field(
+        default=["banking", "investment", "aml_kyc"],
+        description="Finance domains to analyze"
+    )
+    context: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Additional context for analysis"
+    )
+
+
+class FinanceAnalysisResponse(BaseModel):
+    domain: str
+    is_compliant: bool
+    confidence: float
+    violations: List[Dict[str, Any]]
+    recommendations: List[str]
+    risk_score: float
+    analysis_timestamp: str
+    metadata: Dict[str, Any]
+
+
+class ManufacturingAnalysisRequest(BaseModel):
+    text: str = Field(..., description="Text to analyze for manufacturing compliance")
+    domains: Optional[List[str]] = Field(
+        default=["quality_control", "safety_standards", "environmental"],
+        description="Manufacturing domains to analyze"
+    )
+    context: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Additional context for analysis"
+    )
+
+
+class ManufacturingAnalysisResponse(BaseModel):
+    domain: str
+    is_compliant: bool
+    confidence: float
+    violations: List[Dict[str, Any]]
+    recommendations: List[str]
+    risk_score: float
+    analysis_timestamp: str
+    metadata: Dict[str, Any]
+
+
+class CybersecurityAnalysisRequest(BaseModel):
+    text: str = Field(..., description="Text to analyze for cybersecurity compliance")
+    domains: Optional[List[str]] = Field(
+        default=["security_frameworks", "threat_detection", "incident_response"],
+        description="Cybersecurity domains to analyze"
+    )
+    context: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Additional context for analysis"
+    )
+
+
+class CybersecurityAnalysisResponse(BaseModel):
+    domain: str
+    is_compliant: bool
+    confidence: float
+    violations: List[Dict[str, Any]]
+    recommendations: List[str]
+    risk_score: float
+    analysis_timestamp: str
+    metadata: Dict[str, Any]
+
+
 class PilotSummaryResponse(BaseModel):
     legal_analyses: Dict[str, LegalAnalysisResponse]
     scientific_analyses: Dict[str, ScientificAnalysisResponse]
+    healthcare_analyses: Dict[str, HealthcareAnalysisResponse]
+    finance_analyses: Dict[str, FinanceAnalysisResponse]
+    manufacturing_analyses: Dict[str, ManufacturingAnalysisResponse]
+    cybersecurity_analyses: Dict[str, CybersecurityAnalysisResponse]
     overall_compliance_score: float
     overall_validity_score: float
     total_issues: int
@@ -349,6 +449,323 @@ async def analyze_scientific_validity(request: ScientificAnalysisRequest):
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Scientific analysis failed: {str(e)}")
+
+
+# Healthcare Compliance Endpoints
+@router.post("/healthcare/hipaa", response_model=HealthcareAnalysisResponse)
+async def analyze_hipaa_compliance(request: HealthcareAnalysisRequest):
+    """Analyze HIPAA compliance of given text."""
+    try:
+        analysis = await healthcare_pilot.analyze_hipaa_compliance(request.text, request.context)
+        
+        return HealthcareAnalysisResponse(
+            domain=analysis.domain.value,
+            is_compliant=analysis.is_compliant,
+            confidence=analysis.confidence,
+            violations=[
+                {
+                    "rule_id": v.rule_id,
+                    "rule_name": v.rule_name,
+                    "severity": v.severity,
+                    "description": v.description,
+                    "evidence": v.evidence,
+                    "recommendation": v.recommendation,
+                    "regulation_reference": v.regulation_reference,
+                    "penalty_info": v.penalty_info,
+                    "risk_level": v.risk_level
+                }
+                for v in analysis.violations
+            ],
+            recommendations=analysis.recommendations,
+            risk_score=analysis.risk_score,
+            analysis_timestamp=analysis.analysis_timestamp.isoformat(),
+            metadata=analysis.metadata
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"HIPAA analysis failed: {str(e)}")
+
+
+@router.post("/healthcare/fda", response_model=HealthcareAnalysisResponse)
+async def analyze_fda_compliance(request: HealthcareAnalysisRequest):
+    """Analyze FDA compliance of given text."""
+    try:
+        analysis = await healthcare_pilot.analyze_fda_compliance(request.text, request.context)
+        
+        return HealthcareAnalysisResponse(
+            domain=analysis.domain.value,
+            is_compliant=analysis.is_compliant,
+            confidence=analysis.confidence,
+            violations=[
+                {
+                    "rule_id": v.rule_id,
+                    "rule_name": v.rule_name,
+                    "severity": v.severity,
+                    "description": v.description,
+                    "evidence": v.evidence,
+                    "recommendation": v.recommendation,
+                    "regulation_reference": v.regulation_reference,
+                    "penalty_info": v.penalty_info,
+                    "risk_level": v.risk_level
+                }
+                for v in analysis.violations
+            ],
+            recommendations=analysis.recommendations,
+            risk_score=analysis.risk_score,
+            analysis_timestamp=analysis.analysis_timestamp.isoformat(),
+            metadata=analysis.metadata
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"FDA analysis failed: {str(e)}")
+
+
+@router.post("/healthcare/comprehensive", response_model=Dict[str, HealthcareAnalysisResponse])
+async def analyze_comprehensive_healthcare(request: HealthcareAnalysisRequest):
+    """Analyze comprehensive healthcare compliance."""
+    try:
+        analyses = await healthcare_pilot.analyze_comprehensive_healthcare(request.text, request.context)
+        
+        responses = {}
+        for domain_name, analysis in analyses.items():
+            responses[domain_name] = HealthcareAnalysisResponse(
+                domain=analysis.domain.value,
+                is_compliant=analysis.is_compliant,
+                confidence=analysis.confidence,
+                violations=[
+                    {
+                        "rule_id": v.rule_id,
+                        "rule_name": v.rule_name,
+                        "severity": v.severity,
+                        "description": v.description,
+                        "evidence": v.evidence,
+                        "recommendation": v.recommendation,
+                        "regulation_reference": v.regulation_reference,
+                        "penalty_info": v.penalty_info,
+                        "risk_level": v.risk_level
+                    }
+                    for v in analysis.violations
+                ],
+                recommendations=analysis.recommendations,
+                risk_score=analysis.risk_score,
+                analysis_timestamp=analysis.analysis_timestamp.isoformat(),
+                metadata=analysis.metadata
+            )
+        
+        return responses
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Healthcare analysis failed: {str(e)}")
+
+
+# Finance Compliance Endpoints
+@router.post("/finance/banking", response_model=FinanceAnalysisResponse)
+async def analyze_banking_compliance(request: FinanceAnalysisRequest):
+    """Analyze banking compliance of given text."""
+    try:
+        analysis = await finance_pilot.analyze_banking_compliance(request.text, request.context)
+        
+        return FinanceAnalysisResponse(
+            domain=analysis.domain.value,
+            is_compliant=analysis.is_compliant,
+            confidence=analysis.confidence,
+            violations=[
+                {
+                    "rule_id": v.rule_id,
+                    "rule_name": v.rule_name,
+                    "severity": v.severity,
+                    "description": v.description,
+                    "evidence": v.evidence,
+                    "recommendation": v.recommendation,
+                    "regulation_reference": v.regulation_reference,
+                    "penalty_info": v.penalty_info,
+                    "risk_level": v.risk_level
+                }
+                for v in analysis.violations
+            ],
+            recommendations=analysis.recommendations,
+            risk_score=analysis.risk_score,
+            analysis_timestamp=analysis.analysis_timestamp.isoformat(),
+            metadata=analysis.metadata
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Banking analysis failed: {str(e)}")
+
+
+@router.post("/finance/comprehensive", response_model=Dict[str, FinanceAnalysisResponse])
+async def analyze_comprehensive_finance(request: FinanceAnalysisRequest):
+    """Analyze comprehensive finance compliance."""
+    try:
+        analyses = await finance_pilot.analyze_comprehensive_finance(request.text, request.context)
+        
+        responses = {}
+        for domain_name, analysis in analyses.items():
+            responses[domain_name] = FinanceAnalysisResponse(
+                domain=analysis.domain.value,
+                is_compliant=analysis.is_compliant,
+                confidence=analysis.confidence,
+                violations=[
+                    {
+                        "rule_id": v.rule_id,
+                        "rule_name": v.rule_name,
+                        "severity": v.severity,
+                        "description": v.description,
+                        "evidence": v.evidence,
+                        "recommendation": v.recommendation,
+                        "regulation_reference": v.regulation_reference,
+                        "penalty_info": v.penalty_info,
+                        "risk_level": v.risk_level
+                    }
+                    for v in analysis.violations
+                ],
+                recommendations=analysis.recommendations,
+                risk_score=analysis.risk_score,
+                analysis_timestamp=analysis.analysis_timestamp.isoformat(),
+                metadata=analysis.metadata
+            )
+        
+        return responses
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Finance analysis failed: {str(e)}")
+
+
+# Manufacturing Compliance Endpoints
+@router.post("/manufacturing/quality-control", response_model=ManufacturingAnalysisResponse)
+async def analyze_quality_control(request: ManufacturingAnalysisRequest):
+    """Analyze quality control compliance of given text."""
+    try:
+        analysis = await manufacturing_pilot.analyze_quality_control(request.text, request.context)
+        
+        return ManufacturingAnalysisResponse(
+            domain=analysis.domain.value,
+            is_compliant=analysis.is_compliant,
+            confidence=analysis.confidence,
+            violations=[
+                {
+                    "rule_id": v.rule_id,
+                    "rule_name": v.rule_name,
+                    "severity": v.severity,
+                    "description": v.description,
+                    "evidence": v.evidence,
+                    "recommendation": v.recommendation,
+                    "standard_reference": v.standard_reference,
+                    "penalty_info": v.penalty_info,
+                    "risk_level": v.risk_level
+                }
+                for v in analysis.violations
+            ],
+            recommendations=analysis.recommendations,
+            risk_score=analysis.risk_score,
+            analysis_timestamp=analysis.analysis_timestamp.isoformat(),
+            metadata=analysis.metadata
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Quality control analysis failed: {str(e)}")
+
+
+@router.post("/manufacturing/comprehensive", response_model=Dict[str, ManufacturingAnalysisResponse])
+async def analyze_comprehensive_manufacturing(request: ManufacturingAnalysisRequest):
+    """Analyze comprehensive manufacturing compliance."""
+    try:
+        analyses = await manufacturing_pilot.analyze_comprehensive_manufacturing(request.text, request.context)
+        
+        responses = {}
+        for domain_name, analysis in analyses.items():
+            responses[domain_name] = ManufacturingAnalysisResponse(
+                domain=analysis.domain.value,
+                is_compliant=analysis.is_compliant,
+                confidence=analysis.confidence,
+                violations=[
+                    {
+                        "rule_id": v.rule_id,
+                        "rule_name": v.rule_name,
+                        "severity": v.severity,
+                        "description": v.description,
+                        "evidence": v.evidence,
+                        "recommendation": v.recommendation,
+                        "standard_reference": v.standard_reference,
+                        "penalty_info": v.penalty_info,
+                        "risk_level": v.risk_level
+                    }
+                    for v in analysis.violations
+                ],
+                recommendations=analysis.recommendations,
+                risk_score=analysis.risk_score,
+                analysis_timestamp=analysis.analysis_timestamp.isoformat(),
+                metadata=analysis.metadata
+            )
+        
+        return responses
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Manufacturing analysis failed: {str(e)}")
+
+
+# Cybersecurity Compliance Endpoints
+@router.post("/cybersecurity/security-frameworks", response_model=CybersecurityAnalysisResponse)
+async def analyze_security_frameworks(request: CybersecurityAnalysisRequest):
+    """Analyze security frameworks compliance of given text."""
+    try:
+        analysis = await cybersecurity_pilot.analyze_security_frameworks(request.text, request.context)
+        
+        return CybersecurityAnalysisResponse(
+            domain=analysis.domain.value,
+            is_compliant=analysis.is_compliant,
+            confidence=analysis.confidence,
+            violations=[
+                {
+                    "rule_id": v.rule_id,
+                    "rule_name": v.rule_name,
+                    "severity": v.severity,
+                    "description": v.description,
+                    "evidence": v.evidence,
+                    "recommendation": v.recommendation,
+                    "framework_reference": v.framework_reference,
+                    "penalty_info": v.penalty_info,
+                    "risk_level": v.risk_level
+                }
+                for v in analysis.violations
+            ],
+            recommendations=analysis.recommendations,
+            risk_score=analysis.risk_score,
+            analysis_timestamp=analysis.analysis_timestamp.isoformat(),
+            metadata=analysis.metadata
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Security frameworks analysis failed: {str(e)}")
+
+
+@router.post("/cybersecurity/comprehensive", response_model=Dict[str, CybersecurityAnalysisResponse])
+async def analyze_comprehensive_cybersecurity(request: CybersecurityAnalysisRequest):
+    """Analyze comprehensive cybersecurity compliance."""
+    try:
+        analyses = await cybersecurity_pilot.analyze_comprehensive_cybersecurity(request.text, request.context)
+        
+        responses = {}
+        for domain_name, analysis in analyses.items():
+            responses[domain_name] = CybersecurityAnalysisResponse(
+                domain=analysis.domain.value,
+                is_compliant=analysis.is_compliant,
+                confidence=analysis.confidence,
+                violations=[
+                    {
+                        "rule_id": v.rule_id,
+                        "rule_name": v.rule_name,
+                        "severity": v.severity,
+                        "description": v.description,
+                        "evidence": v.evidence,
+                        "recommendation": v.recommendation,
+                        "framework_reference": v.framework_reference,
+                        "penalty_info": v.penalty_info,
+                        "risk_level": v.risk_level
+                    }
+                    for v in analysis.violations
+                ],
+                recommendations=analysis.recommendations,
+                risk_score=analysis.risk_score,
+                analysis_timestamp=analysis.analysis_timestamp.isoformat(),
+                metadata=analysis.metadata
+            )
+        
+        return responses
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Cybersecurity analysis failed: {str(e)}")
 
 
 # Combined Analysis Endpoint
