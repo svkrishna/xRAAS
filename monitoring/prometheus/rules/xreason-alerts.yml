@@ -1,0 +1,116 @@
+groups:
+  - name: xreason-reasoning-alerts
+    rules:
+      # High error rate alert
+      - alert: HighReasoningErrorRate
+        expr: rate(reasoning_errors_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High reasoning error rate detected"
+          description: "Error rate is {{ $value }} errors per second over the last 5 minutes"
+
+      # Slow response time alert
+      - alert: SlowReasoningResponseTime
+        expr: histogram_quantile(0.95, rate(reasoning_response_time_seconds_bucket[5m])) > 3
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow reasoning response time detected"
+          description: "95th percentile response time is {{ $value }} seconds"
+
+      # Low confidence alert
+      - alert: LowReasoningConfidence
+        expr: histogram_quantile(0.5, rate(reasoning_confidence_score_bucket[5m])) < 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low reasoning confidence detected"
+          description: "Median confidence score is {{ $value }}"
+
+      # High LLM error rate
+      - alert: HighLLMErrorRate
+        expr: rate(llm_requests_total{status="error"}[5m]) / rate(llm_requests_total[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High LLM error rate detected"
+          description: "LLM error rate is {{ $value | humanizePercentage }}"
+
+      # Prolog query failures
+      - alert: PrologQueryFailures
+        expr: rate(prolog_queries_total{status="error"}[5m]) > 0.01
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Prolog query failures detected"
+          description: "Prolog error rate is {{ $value }} errors per second"
+
+  - name: xreason-system-alerts
+    rules:
+      # Service down alert
+      - alert: XReasonServiceDown
+        expr: up{job="xreason-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "XReason backend service is down"
+          description: "XReason backend has been down for more than 1 minute"
+
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value | humanizePercentage }}"
+
+      # High CPU usage
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value }}%"
+
+  - name: xreason-business-alerts
+    rules:
+      # Low success rate
+      - alert: LowSuccessRate
+        expr: rate(reasoning_requests_total{status="success"}[5m]) / rate(reasoning_requests_total[5m]) < 0.9
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Low reasoning success rate"
+          description: "Success rate is {{ $value | humanizePercentage }}"
+
+      # No requests alert
+      - alert: NoReasoningRequests
+        expr: rate(reasoning_requests_total[5m]) == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No reasoning requests detected"
+          description: "No reasoning requests in the last 10 minutes"
+
+      # High token usage
+      - alert: HighTokenUsage
+        expr: rate(llm_tokens_used_total[5m]) > 1000
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High token usage detected"
+          description: "Token usage rate is {{ $value }} tokens per second"

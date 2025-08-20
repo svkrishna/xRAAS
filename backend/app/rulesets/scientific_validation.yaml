@@ -1,0 +1,132 @@
+id: "scientific_validation"
+name: "Scientific Validation Rules"
+description: "Rules for validating scientific research, mathematical proofs, and logical consistency"
+domain: "scientific"
+version: "1.0.0"
+author: "XReason Scientific Team"
+tags: ["scientific", "research", "mathematics", "validation", "proof"]
+enabled: true
+priority: 8
+
+rules:
+  - id: "math_proof_structure"
+    name: "Mathematical Proof Structure"
+    description: "Check if mathematical proof follows proper structure"
+    type: "keyword"
+    severity: "warning"
+    content: "proof,lemma,theorem,corollary,definition,assumption,conclusion"
+    weight: 2.0
+    conditions:
+      - field: "domain"
+        operator: "contains"
+        value: "scientific"
+        case_sensitive: false
+
+  - id: "statistical_significance"
+    name: "Statistical Significance Check"
+    description: "Verify statistical significance is mentioned and calculated"
+    type: "regex"
+    severity: "error"
+    content: "p.*value.*<.*0\\.05|statistical.*significance|confidence.*interval"
+    weight: 2.5
+
+  - id: "sample_size_adequacy"
+    name: "Sample Size Adequacy"
+    description: "Check if sample size is adequate for the study"
+    type: "keyword"
+    severity: "warning"
+    content: "sample size,power analysis,effect size,minimum sample"
+    weight: 1.5
+
+  - id: "control_group_mention"
+    name: "Control Group Check"
+    description: "Verify control group is mentioned in experimental studies"
+    type: "keyword"
+    severity: "warning"
+    content: "control group,placebo,randomized,experimental group"
+    weight: 1.5
+
+  - id: "mathematical_consistency"
+    name: "Mathematical Consistency"
+    description: "Check for mathematical consistency in calculations"
+    type: "python"
+    severity: "error"
+    content: |
+      import re
+      import math
+      
+      # Extract mathematical expressions
+      math_patterns = [
+          r'(\d+\.?\d*)\s*[+\-*/]\s*(\d+\.?\d*)',
+          r'(\d+\.?\d*)\s*=\s*(\d+\.?\d*)',
+          r'sqrt\((\d+\.?\d*)\)',
+          r'(\d+\.?\d*)\^(\d+)'
+      ]
+      
+      text = f"{question} {hypothesis}"
+      inconsistencies = []
+      
+      for pattern in math_patterns:
+          matches = re.findall(pattern, text)
+          for match in matches:
+              try:
+                  if len(match) == 2:
+                      a, b = float(match[0]), float(match[1])
+                      # Check for division by zero
+                      if '/' in pattern and b == 0:
+                          inconsistencies.append(f"Division by zero: {a}/{b}")
+              except ValueError:
+                  pass
+      
+      passed = len(inconsistencies) == 0
+      confidence = 1.0 if passed else 0.3
+      
+      result = {
+          "passed": passed,
+          "confidence": confidence,
+          "output": {
+              "inconsistencies": inconsistencies,
+              "math_expressions_found": len(re.findall(r'\d+\.?\d*', text))
+          }
+      }
+    weight: 2.0
+
+  - id: "logical_fallacies"
+    name: "Logical Fallacy Detection"
+    description: "Detect common logical fallacies in arguments"
+    type: "keyword"
+    severity: "warning"
+    content: "ad hominem,straw man,false dichotomy,appeal to authority,correlation causation"
+    weight: 1.0
+
+  - id: "citation_check"
+    name: "Citation and Reference Check"
+    description: "Verify proper citations and references are included"
+    type: "regex"
+    severity: "warning"
+    content: "\\[\\d+\\]|\\([A-Za-z]+\\s*\\d{4}\\)|et\\.\\s*al\\.|references|bibliography"
+    weight: 1.5
+
+  - id: "hypothesis_testing"
+    name: "Hypothesis Testing Framework"
+    description: "Check if proper hypothesis testing framework is used"
+    type: "keyword"
+    severity: "error"
+    content: "null hypothesis,alternative hypothesis,reject,fail to reject,significance level"
+    weight: 2.0
+
+  - id: "reproducibility_check"
+    name: "Reproducibility Check"
+    description: "Verify that methods are described for reproducibility"
+    type: "keyword"
+    severity: "warning"
+    content: "methodology,procedure,protocol,reproducible,replication"
+    weight: 1.5
+
+  - id: "uncertainty_quantification"
+    name: "Uncertainty Quantification"
+    description: "Check if uncertainty is properly quantified"
+    type: "keyword"
+    severity: "warning"
+    content: "uncertainty,error margin,standard deviation,standard error,confidence interval"
+    weight: 1.0

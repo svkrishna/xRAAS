@@ -1,0 +1,79 @@
+id: "legal_gdpr"
+name: "GDPR Compliance Rules"
+description: "Rules for GDPR (General Data Protection Regulation) compliance checking"
+domain: "legal"
+version: "1.0.0"
+author: "XReason Legal Team"
+tags: ["gdpr", "privacy", "compliance", "legal"]
+enabled: true
+priority: 10
+
+rules:
+  - id: "gdpr_consent_check"
+    name: "Consent Validation"
+    description: "Check if proper consent mechanisms are mentioned"
+    type: "keyword"
+    severity: "error"
+    content: "consent,explicit consent,opt-in,opt-out,withdraw consent"
+    weight: 2.0
+    conditions:
+      - field: "domain"
+        operator: "contains"
+        value: "legal"
+        case_sensitive: false
+
+  - id: "gdpr_data_minimization"
+    name: "Data Minimization Check"
+    description: "Verify that data minimization principles are followed"
+    type: "keyword"
+    severity: "warning"
+    content: "minimum data,necessary data,limited purpose,data minimization"
+    weight: 1.5
+
+  - id: "gdpr_right_to_access"
+    name: "Right to Access Check"
+    description: "Check if data subject rights are mentioned"
+    type: "keyword"
+    severity: "warning"
+    content: "right to access,data subject rights,request data,portability"
+    weight: 1.0
+
+  - id: "gdpr_breach_notification"
+    name: "Breach Notification Check"
+    description: "Verify breach notification requirements"
+    type: "regex"
+    severity: "error"
+    content: "breach.*notification|data.*breach|security.*incident"
+    weight: 2.5
+
+  - id: "gdpr_dpo_requirement"
+    name: "DPO Requirement Check"
+    description: "Check if Data Protection Officer requirements are mentioned"
+    type: "keyword"
+    severity: "info"
+    content: "data protection officer,dpo,privacy officer"
+    weight: 1.0
+
+  - id: "gdpr_legal_basis"
+    name: "Legal Basis Validation"
+    description: "Check if valid legal basis for processing is mentioned"
+    type: "keyword"
+    severity: "error"
+    content: "legitimate interest,contract,legal obligation,vital interest,public interest"
+    weight: 2.0
+
+  - id: "gdpr_retention_period"
+    name: "Retention Period Check"
+    description: "Verify data retention period is specified"
+    type: "regex"
+    severity: "warning"
+    content: "retention.*period|retain.*data|delete.*after|storage.*limit"
+    weight: 1.5
+
+  - id: "gdpr_cross_border"
+    name: "Cross-border Transfer Check"
+    description: "Check for international data transfer safeguards"
+    type: "keyword"
+    severity: "warning"
+    content: "international transfer,cross-border,adequacy decision,standard contractual clauses"
+    weight: 1.0
