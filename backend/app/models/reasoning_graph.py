@@ -80,7 +80,7 @@ class ReasoningGraphDB(SQLModel, table=True):
     session_id: str = SQLField(foreign_key="reasoning_sessions.id", index=True)
     nodes_data: str = SQLField(description="JSON serialized nodes")
     edges_data: str = SQLField(description="JSON serialized edges")
-    metadata: str = SQLField(description="JSON serialized metadata")
+    meta_data: str = SQLField(description="JSON serialized metadata")
     created_at: datetime = SQLField(default_factory=datetime.utcnow, index=True)
     updated_at: datetime = SQLField(default_factory=datetime.utcnow)
     
@@ -92,7 +92,7 @@ class GraphExecutionLog(SQLModel, table=True):
     """Database model for logging graph executions."""
     __tablename__ = "graph_execution_logs"
     
-    id: int = SQLField(primary_key=True, autoincrement=True)
+    id: Optional[int] = SQLField(default=None, primary_key=True)
     graph_id: str = SQLField(foreign_key="reasoning_graphs.id", index=True)
     node_id: str = SQLField(index=True)
     execution_time_ms: float = SQLField(description="Execution time in milliseconds")

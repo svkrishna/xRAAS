@@ -8,7 +8,7 @@ from sqlalchemy import Column, String, DateTime, Integer, Float, Boolean, JSON, 
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
-from app.models.base import Base
+from app.core.database import Base
 
 
 class Agent(Base):

@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     """Application settings."""
     
     # OpenAI Configuration
-    openai_api_key: str
+    openai_api_key: str = "sk-demo-key-for-testing"
     openai_model: str = "gpt-4o"
     
     # Database Configuration
@@ -25,9 +25,18 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     
     # Security
-    secret_key: str
+    secret_key: str = "dev-secret-key-for-testing-only"
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
+    refresh_token_expire_days: int = 7
+    
+    # Password Settings
+    min_password_length: int = 8
+    password_hash_algorithm: str = "bcrypt"
+    
+    # Session Settings
+    session_timeout_minutes: int = 30
+    max_sessions_per_user: int = 5
     
     # API Configuration
     api_v1_str: str = "/api/v1"

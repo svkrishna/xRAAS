@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 from sqlmodel import SQLModel, Field as SQLField
 
 
-class TimestampMixin(SQLModel):
+class TimestampMixin:
     """Mixin for timestamp fields."""
     
     created_at: datetime = SQLField(default_factory=datetime.utcnow)

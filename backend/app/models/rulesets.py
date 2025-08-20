@@ -115,7 +115,7 @@ class RuleExecutionLog(SQLModel, table=True):
     """Database model for logging rule executions."""
     __tablename__ = "rule_execution_logs"
     
-    id: int = SQLField(primary_key=True, autoincrement=True)
+    id: Optional[int] = SQLField(default=None, primary_key=True)
     ruleset_id: str = SQLField(foreign_key="rulesets.id", index=True)
     rule_id: str = SQLField(index=True)
     reasoning_session_id: str = SQLField(index=True)

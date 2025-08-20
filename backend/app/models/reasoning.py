@@ -114,4 +114,4 @@ class KnowledgeFactDB(SQLModel, TimestampMixin, table=True):
     object: str
     confidence: float = 1.0
     source: Optional[str] = None
-    metadata: Optional[str] = None  # JSON string
+    meta_data: Optional[str] = None  # JSON string

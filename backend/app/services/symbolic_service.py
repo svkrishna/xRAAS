@@ -36,6 +36,8 @@ class SymbolicService:
     
     def _initialize_prolog_rules(self):
         """Initialize Prolog rules for advanced reasoning."""
+        global PROLOG_AVAILABLE
+        
         if not PROLOG_AVAILABLE:
             print("⚠️  Skipping Prolog rule initialization - pyswip not available")
             return
@@ -85,7 +87,6 @@ class SymbolicService:
                         
         except Exception as e:
             print(f"⚠️  Error initializing Prolog rules: {e}")
-            global PROLOG_AVAILABLE
             PROLOG_AVAILABLE = False
     
     def _initialize_rule_sets(self) -> Dict[str, Dict[str, Any]]:

@@ -10,7 +10,8 @@ import time
 import logging
 
 from app.core.config import settings
-from app.api import reasoning_router, health_router, rulesets_router, reasoning_graphs_router, setup_metrics_instrumentation, pilots_router, agents_router
+from app.api import reasoning_router, health_router, rulesets_router, reasoning_graphs_router, setup_metrics_instrumentation, pilots_router, agents_router, financial_analysis_router, commercial_router
+from app.api.auth import router as auth_router
 
 # Configure logging
 logging.basicConfig(
@@ -89,6 +90,9 @@ app.include_router(rulesets_router, tags=["rulesets"])
 app.include_router(reasoning_graphs_router, tags=["reasoning-graphs"])
 app.include_router(pilots_router, prefix="/api/v1", tags=["pilots"])
 app.include_router(agents_router, tags=["agents"])
+app.include_router(financial_analysis_router, tags=["financial_analysis"])
+app.include_router(commercial_router, tags=["commercial"])
+app.include_router(auth_router, tags=["authentication"])
 
 
 @app.get("/", tags=["root"])

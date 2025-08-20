@@ -19,8 +19,8 @@ from app.core.config import settings
 from app.services.llm_service import LLMService
 from app.services.symbolic_service import SymbolicService
 from app.services.knowledge_service import KnowledgeService
-from app.services.metrics_service import MetricsService
-from app.models.reasoning_graph import ReasoningGraph, ReasoningNode, ReasoningEdge
+from app.services.metrics_service import ReasoningMetricsService
+from app.models.reasoning_graph import ReasoningGraph, GraphNode, GraphEdge
 from app.schemas.agent import (
     AgentType, AgentState, TaskPriority, TaskStatus,
     AgentProcessingRequest, AgentProcessingResponse,
@@ -117,7 +117,7 @@ class BaseAgent:
         self.llm_service = LLMService()
         self.symbolic_service = SymbolicService()
         self.knowledge_service = KnowledgeService()
-        self.metrics_service = MetricsService()
+        self.metrics_service = ReasoningMetricsService()
         self.performance_metrics = {
             "tasks_completed": 0,
             "success_rate": 0.0,
@@ -695,7 +695,7 @@ class AIAgentService:
     def __init__(self):
         self.agents: Dict[str, BaseAgent] = {}
         self.sessions: Dict[str, Dict] = {}
-        self.metrics_service = MetricsService()
+        self.metrics_service = ReasoningMetricsService()
         
         # Initialize agents
         self._initialize_agents()

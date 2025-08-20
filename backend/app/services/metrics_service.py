@@ -9,7 +9,8 @@ from prometheus_client import (
     generate_latest, CONTENT_TYPE_LATEST,
     CollectorRegistry
 )
-from prometheus_client.metrics import CounterMetricFamily, HistogramMetricFamily, GaugeMetricFamily
+# Note: CounterMetricFamily, HistogramMetricFamily, GaugeMetricFamily are not available in current prometheus_client version
+# These are not used in the current implementation
 
 
 class ReasoningMetricsService:
