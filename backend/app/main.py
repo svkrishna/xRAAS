@@ -10,7 +10,7 @@ import time
 import logging
 
 from app.core.config import settings
-from app.api import reasoning_router, health_router, rulesets_router, reasoning_graphs_router, setup_metrics_instrumentation, pilots_router, agents_router, financial_analysis_router, commercial_router
+from app.api import reasoning_router, health_router, rulesets_router, reasoning_graphs_router, setup_metrics_instrumentation, pilots_router, agents_router, financial_analysis_router, commercial_router, graph_persistence
 from app.api.auth import router as auth_router
 
 # Configure logging
@@ -93,6 +93,7 @@ app.include_router(agents_router, tags=["agents"])
 app.include_router(financial_analysis_router, tags=["financial_analysis"])
 app.include_router(commercial_router, tags=["commercial"])
 app.include_router(auth_router, tags=["authentication"])
+app.include_router(graph_persistence.router, tags=["graph-persistence"])
 
 
 @app.get("/", tags=["root"])

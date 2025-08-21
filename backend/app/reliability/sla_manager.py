@@ -106,8 +106,13 @@ class SLAManager:
         self.measurement_data: Dict[str, deque] = defaultdict(lambda: deque(maxlen=10000))
         self.active_incidents: Dict[str, Dict[str, Any]] = {}
         
-        # Start monitoring tasks
-        asyncio.create_task(self._continuous_monitoring())
+        # Start monitoring tasks (only if event loop is running)
+        try:
+            loop = asyncio.get_running_loop()
+            asyncio.create_task(self._continuous_monitoring())
+        except RuntimeError:
+            # No event loop running, will start monitoring when needed
+            pass
     
     def _initialize_sla_targets(self) -> Dict[str, SLATarget]:
         """Initialize SLA targets for different service tiers."""

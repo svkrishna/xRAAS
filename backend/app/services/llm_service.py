@@ -197,3 +197,29 @@ class LLMService:
                 confidence=0.0,
                 metadata={"error": str(e)}
             )
+    
+    async def generate(self, prompt: str) -> str:
+        """
+        Generate a response for a given prompt.
+        
+        Args:
+            prompt: The prompt to send to the LLM
+            
+        Returns:
+            Generated response as string
+        """
+        try:
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "You are a helpful AI assistant. Respond in the requested format."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.3,
+                max_tokens=1000
+            )
+            
+            return response.choices[0].message.content
+            
+        except Exception as e:
+            return f"Error generating response: {str(e)}"

@@ -20,7 +20,7 @@ from app.services.ai_agent_service import ai_agent_service
 from app.services.llm_service import LLMService
 from app.services.symbolic_service import SymbolicService
 from app.services.knowledge_service import KnowledgeService
-from app.services.metrics_service import MetricsService
+from app.services.metrics_service import ReasoningMetricsService
 from app.schemas.agent import AgentType, TaskPriority
 
 logger = logging.getLogger(__name__)
@@ -95,7 +95,7 @@ class FinancialAnalysisService:
         self.llm_service = LLMService()
         self.symbolic_service = SymbolicService()
         self.knowledge_service = KnowledgeService()
-        self.metrics_service = MetricsService()
+        self.metrics_service = ReasoningMetricsService()
         self.financial_rules = self._load_financial_rules()
         self.regulatory_frameworks = self._load_regulatory_frameworks()
     

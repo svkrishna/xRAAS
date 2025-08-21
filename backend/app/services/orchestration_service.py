@@ -14,7 +14,7 @@ from app.models.reasoning import (
     ReasoningSession
 )
 from app.services.llm_service import LLMService
-from app.services.symbolic_service import SymbolicService
+from app.services.modern_reasoning_service import create_modern_reasoning_service
 from app.services.knowledge_service import KnowledgeService
 from app.core.config import settings
 
@@ -24,7 +24,7 @@ class OrchestrationService:
     
     def __init__(self):
         self.llm_service = LLMService()
-        self.symbolic_service = SymbolicService()
+        self.symbolic_service = create_modern_reasoning_service(self.llm_service)
         self.knowledge_service = KnowledgeService()
     
     async def reason(

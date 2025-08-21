@@ -1,93 +1,368 @@
 """
-Symbolic Service for System 2 reasoning (rule-based, logical verification).
+Symbolic Reasoning Service
+Python-based rule engine for symbolic logic and validation.
 """
 
 import re
-import math
-from typing import Dict, Any, Optional, List, Tuple
+import uuid
+import asyncio
+from typing import Dict, List, Any, Optional, Callable
+from datetime import datetime
+import logging
+from dataclasses import dataclass, field
 
-# Import optional dependencies with fallbacks
-try:
-    from z3 import *
-    Z3_AVAILABLE = True
-except ImportError:
-    Z3_AVAILABLE = False
-    print("⚠️  Z3 solver not available. Some symbolic reasoning features will be limited.")
+logger = logging.getLogger(__name__)
 
-try:
-    from pyswip import Prolog
-    # Test if SWI-Prolog is actually available
-    test_prolog = Prolog()
-    PROLOG_AVAILABLE = True
-except (ImportError, Exception) as e:
-    PROLOG_AVAILABLE = False
-    print(f"⚠️  Prolog (pyswip) not available: {e}")
-    print("💡 To enable Prolog reasoning, install SWI-Prolog: brew install swi-prolog")
+# Global flag for rule engine availability (always True for Python-based engine)
+RULE_ENGINE_AVAILABLE = True
 
-from app.models.reasoning import ReasoningTrace, ReasoningStage
+
+@dataclass
+class Rule:
+    """A rule for symbolic reasoning."""
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    name: str = ""
+    description: str = ""
+    condition: Callable = None
+    action: Callable = None
+    priority: int = 1
+    domain: str = "general"
+    is_active: bool = True
+
+
+@dataclass
+class RuleResult:
+    """Result of applying a rule."""
+    rule_id: str = ""
+    rule_name: str = ""
+    matched: bool = False
+    result: Any = None
+    confidence: float = 0.0
+    reasoning: str = ""
+    execution_time_ms: float = 0.0
+
+
+class PythonRuleEngine:
+    """Python-based rule engine for symbolic reasoning."""
+    
+    def __init__(self):
+        self.rules: Dict[str, Rule] = {}
+        self.facts: Dict[str, Any] = {}
+        self.logger = logging.getLogger(__name__)
+        
+        # Initialize default rules
+        self._initialize_default_rules()
+    
+    def add_rule(self, rule: Rule) -> None:
+        """Add a rule to the engine."""
+        self.rules[rule.id] = rule
+        self.logger.info(f"Added rule: {rule.name} ({rule.id})")
+    
+    def add_fact(self, key: str, value: Any) -> None:
+        """Add a fact to the knowledge base."""
+        self.facts[key] = value
+    
+    def get_fact(self, key: str) -> Any:
+        """Get a fact from the knowledge base."""
+        return self.facts.get(key)
+    
+    async def apply_rules(self, context: Dict[str, Any]) -> List[RuleResult]:
+        """Apply all applicable rules to the context."""
+        results = []
+        
+        # Add context to facts
+        self.facts.update(context)
+        
+        for rule in self.rules.values():
+            if not rule.is_active:
+                continue
+                
+            start_time = datetime.utcnow()
+            
+            try:
+                # Check if rule condition is met
+                if rule.condition:
+                    matched = rule.condition(self.facts)
+                else:
+                    matched = True
+                
+                if matched:
+                    # Execute rule action
+                    if rule.action:
+                        result = rule.action(self.facts)
+                    else:
+                        result = True
+                    
+                    execution_time = (datetime.utcnow() - start_time).total_seconds() * 1000
+                    
+                    results.append(RuleResult(
+                        rule_id=rule.id,
+                        rule_name=rule.name,
+                        matched=True,
+                        result=result,
+                        confidence=1.0,
+                        reasoning=f"Rule '{rule.name}' matched and executed successfully",
+                        execution_time_ms=execution_time
+                    ))
+                    
+            except Exception as e:
+                self.logger.error(f"Error applying rule {rule.name}: {e}")
+                results.append(RuleResult(
+                    rule_id=rule.id,
+                    rule_name=rule.name,
+                    matched=False,
+                    result=None,
+                    confidence=0.0,
+                    reasoning=f"Error: {str(e)}",
+                    execution_time_ms=0.0
+                ))
+        
+        return results
+    
+    def _initialize_default_rules(self):
+        """Initialize default rules for common scenarios."""
+        
+        # HIPAA compliance rules
+        def hipaa_access_control_condition(facts):
+            text = facts.get('text', '').lower()
+            return any(term in text for term in ['access control', 'electronic', 'protected health information'])
+        
+        def hipaa_access_control_action(facts):
+            return {
+                'compliant': True,
+                'requirements_met': ['access_control', 'electronic_phi'],
+                'recommendations': ['Ensure proper access controls are in place']
+            }
+        
+        self.add_rule(Rule(
+            name="HIPAA Access Control",
+            description="Check HIPAA access control compliance",
+            condition=hipaa_access_control_condition,
+            action=hipaa_access_control_action,
+            domain="healthcare"
+        ))
+        
+        # Financial calculation rules
+        def debt_to_equity_condition(facts):
+            return 'debt' in facts and 'equity' in facts
+        
+        def debt_to_equity_action(facts):
+            debt = facts['debt']
+            equity = facts['equity']
+            ratio = debt / equity if equity != 0 else float('inf')
+            return {
+                'ratio': ratio,
+                'interpretation': 'High ratio indicates higher financial risk' if ratio > 2 else 'Healthy debt-to-equity ratio',
+                'risk_level': 'high' if ratio > 2 else 'medium' if ratio > 1 else 'low'
+            }
+        
+        self.add_rule(Rule(
+            name="Debt-to-Equity Ratio",
+            description="Calculate debt-to-equity ratio",
+            condition=debt_to_equity_condition,
+            action=debt_to_equity_action,
+            domain="finance"
+        ))
+        
+        # Logical consistency rules
+        def logical_consistency_condition(facts):
+            text = facts.get('text', '').lower()
+            contradictions = [
+                ('yes', 'no'), ('true', 'false'), ('compliant', 'non-compliant'),
+                ('allowed', 'prohibited'), ('valid', 'invalid')
+            ]
+            return any(pos in text and neg in text for pos, neg in contradictions)
+        
+        def logical_consistency_action(facts):
+            return {
+                'consistent': False,
+                'issue': 'Logical contradiction detected',
+                'recommendation': 'Review and resolve contradictory statements'
+            }
+        
+        self.add_rule(Rule(
+            name="Logical Consistency",
+            description="Check for logical contradictions",
+            condition=logical_consistency_condition,
+            action=logical_consistency_action,
+            domain="general"
+        ))
 
 
 class SymbolicService:
-    """Service for symbolic/rule-based reasoning."""
+    """Symbolic reasoning service using Python-based rule engine."""
     
     def __init__(self):
+        self.rule_engine = PythonRuleEngine()
         self.rule_sets = self._initialize_rule_sets()
-        self._initialize_prolog_rules()
+        self.logger = logging.getLogger(__name__)
     
-    def _initialize_prolog_rules(self):
-        """Initialize Prolog rules for advanced reasoning."""
-        global PROLOG_AVAILABLE
-        
-        if not PROLOG_AVAILABLE:
-            print("⚠️  Skipping Prolog rule initialization - pyswip not available")
-            return
-            
+    async def apply_symbolic_reasoning(self, question: str, hypothesis: str, domain: str = "general") -> List[Dict[str, Any]]:
+        """Apply symbolic reasoning to validate a hypothesis."""
         try:
-            self.prolog = Prolog()
+            # Prepare context
+            context = {
+                'question': question,
+                'hypothesis': hypothesis,
+                'text': f"{question} {hypothesis}",
+                'domain': domain,
+                'timestamp': datetime.utcnow()
+            }
             
-            # HIPAA compliance rules
-            hipaa_rules = """
-                % Rule: Access request is HIPAA compliant if user has authentication and authorization for electronic PHI
-                hipaa_compliant(access_request) :- 
-                    has_authentication(user),
-                    has_authorization(user, resource),
-                    electronic_phi(resource).
-                
-                % Rule: Access request is compliant if it's not for electronic PHI
-                hipaa_compliant(access_request) :- 
-                    not(electronic_phi(resource)).
-                
-                % Financial calculation rules
-                debt_to_equity_ratio(Debt, Equity, Ratio) :- 
-                    Ratio is Debt / Equity.
-                
-                current_ratio(Assets, Liabilities, Ratio) :- 
-                    Ratio is Assets / Liabilities.
-                
-                roi(Gain, Cost, Percentage) :- 
-                    Percentage is ((Gain - Cost) / Cost) * 100.
-                
-                % Logical consistency rules
-                logically_consistent(Statement) :- 
-                    not(contradicts(Statement, Statement)).
-                
-                % Transitive implication
-                implies(A, C) :- 
-                    implies(A, B),
-                    implies(B, C).
-            """
+            # Apply rules
+            results = await self.rule_engine.apply_rules(context)
             
-            # Load rules into Prolog
-            for rule in hipaa_rules.strip().split('\n'):
-                if rule.strip() and not rule.strip().startswith('%'):
-                    try:
-                        self.prolog.assertz(rule.strip())
-                    except Exception as e:
-                        print(f"⚠️  Warning: Could not load Prolog rule '{rule.strip()}': {e}")
-                        
+            # Convert to expected format
+            symbolic_results = []
+            for result in results:
+                symbolic_results.append({
+                    "rule": result.rule_name,
+                    "result": str(result.result),
+                    "passed": result.matched,
+                    "confidence": result.confidence,
+                    "reasoning": result.reasoning,
+                    "execution_time_ms": result.execution_time_ms
+                })
+            
+            return symbolic_results
+            
         except Exception as e:
-            print(f"⚠️  Error initializing Prolog rules: {e}")
-            PROLOG_AVAILABLE = False
+            self.logger.error(f"Error in symbolic reasoning: {e}")
+            return [{
+                "rule": "Symbolic_Reasoning_Error",
+                "result": f"Error: {str(e)}",
+                "passed": False,
+                "confidence": 0.0,
+                "reasoning": "Symbolic reasoning failed due to an error"
+            }]
+    
+    async def validate_mathematical_consistency(self, statement: str) -> Dict[str, Any]:
+        """Validate mathematical consistency in a statement."""
+        try:
+            # Extract mathematical expressions
+            math_patterns = [
+                r'(\d+)\s*\+\s*(\d+)\s*=\s*(\d+)',
+                r'(\d+)\s*\*\s*(\d+)\s*=\s*(\d+)',
+                r'(\d+)\s*/\s*(\d+)\s*=\s*(\d+)',
+                r'(\d+)\s*-\s*(\d+)\s*=\s*(\d+)'
+            ]
+            
+            results = []
+            for pattern in math_patterns:
+                matches = re.findall(pattern, statement)
+                for match in matches:
+                    a, b, expected = map(float, match)
+                    
+                    # Calculate actual result based on pattern
+                    if '+' in pattern:
+                        actual = a + b
+                        operation = "addition"
+                    elif '*' in pattern:
+                        actual = a * b
+                        operation = "multiplication"
+                    elif '/' in pattern:
+                        actual = a / b if b != 0 else float('inf')
+                        operation = "division"
+                    elif '-' in pattern:
+                        actual = a - b
+                        operation = "subtraction"
+                    
+                    is_correct = abs(actual - expected) < 0.01
+                    results.append({
+                        "operation": operation,
+                        "expression": f"{a} {operation} {b}",
+                        "expected": expected,
+                        "actual": actual,
+                        "correct": is_correct
+                    })
+            
+            return {
+                "consistent": all(r["correct"] for r in results),
+                "results": results,
+                "summary": f"Found {len(results)} mathematical expressions, {sum(1 for r in results if r['correct'])} correct"
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error in mathematical validation: {e}")
+            return {
+                "consistent": False,
+                "error": str(e)
+            }
+    
+    async def check_logical_consistency(self, statements: List[str]) -> Dict[str, Any]:
+        """Check logical consistency across multiple statements."""
+        try:
+            contradictions = []
+            implications = []
+            
+            # Check for direct contradictions
+            for i, stmt1 in enumerate(statements):
+                for j, stmt2 in enumerate(statements[i+1:], i+1):
+                    # Simple contradiction detection
+                    if self._are_contradictory(stmt1, stmt2):
+                        contradictions.append({
+                            "statement1": stmt1,
+                            "statement2": stmt2,
+                            "reason": "Direct contradiction detected"
+                        })
+            
+            # Check for logical implications
+            for stmt1 in statements:
+                for stmt2 in statements:
+                    if stmt1 != stmt2 and self._implies(stmt1, stmt2):
+                        implications.append({
+                            "premise": stmt1,
+                            "conclusion": stmt2
+                        })
+            
+            return {
+                "consistent": len(contradictions) == 0,
+                "contradictions": contradictions,
+                "implications": implications,
+                "summary": f"Found {len(contradictions)} contradictions and {len(implications)} implications"
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error in logical consistency check: {e}")
+            return {
+                "consistent": False,
+                "error": str(e)
+            }
+    
+    def _are_contradictory(self, stmt1: str, stmt2: str) -> bool:
+        """Check if two statements are contradictory."""
+        stmt1_lower = stmt1.lower()
+        stmt2_lower = stmt2.lower()
+        
+        # Simple contradiction patterns
+        contradictions = [
+            ("yes", "no"), ("true", "false"), ("compliant", "non-compliant"),
+            ("allowed", "prohibited"), ("valid", "invalid"), ("success", "failure")
+        ]
+        
+        for pos, neg in contradictions:
+            if pos in stmt1_lower and neg in stmt2_lower:
+                return True
+            if neg in stmt1_lower and pos in stmt2_lower:
+                return True
+        
+        return False
+    
+    def _implies(self, premise: str, conclusion: str) -> bool:
+        """Check if premise implies conclusion."""
+        # Simple implication detection
+        premise_lower = premise.lower()
+        conclusion_lower = conclusion.lower()
+        
+        # Check for common implication patterns
+        if "if" in premise_lower and "then" in premise_lower:
+            # Extract condition and consequence
+            if "then" in premise_lower:
+                condition_part = premise_lower.split("then")[0]
+                if any(word in conclusion_lower for word in condition_part.split()):
+                    return True
+        
+        return False
     
     def _initialize_rule_sets(self) -> Dict[str, Dict[str, Any]]:
         """Initialize available rule sets."""
@@ -106,21 +381,21 @@ class SymbolicService:
                 {
                     "id": "hipaa_164_312_a_1",
                     "name": "Access Control",
-                    "description": "Implement technical policies and procedures for electronic information systems that maintain electronic protected health information to allow access only to those persons or software programs that have been granted access rights",
-                    "keywords": ["access control", "electronic", "protected health information", "access rights"],
+                    "description": "Implement technical policies and procedures for electronic information systems",
+                    "keywords": ["access control", "electronic", "protected health information"],
                     "check_function": self._check_hipaa_access_control
                 },
                 {
-                    "id": "hipaa_164_312_c_1",
+                    "id": "hipaa_164_312_c_1", 
                     "name": "Integrity",
-                    "description": "Implement policies and procedures to protect electronic protected health information from improper alteration or destruction",
+                    "description": "Implement policies to protect electronic PHI from improper alteration",
                     "keywords": ["integrity", "alteration", "destruction", "electronic"],
                     "check_function": self._check_hipaa_integrity
                 },
                 {
                     "id": "hipaa_164_312_d",
-                    "name": "Person or Entity Authentication",
-                    "description": "Implement procedures to verify that a person or entity seeking access to electronic protected health information is the one claimed",
+                    "name": "Authentication",
+                    "description": "Implement procedures to verify person or entity seeking access",
                     "keywords": ["authentication", "verification", "person", "entity"],
                     "check_function": self._check_hipaa_authentication
                 }
@@ -167,484 +442,127 @@ class SymbolicService:
                     "id": "mathematical_consistency",
                     "name": "Mathematical Consistency",
                     "description": "Check for mathematical consistency in calculations",
-                    "keywords": ["calculate", "math", "formula", "equation"],
+                    "keywords": ["calculation", "math", "formula", "equation"],
                     "check_function": self._check_mathematical_consistency
                 },
                 {
                     "id": "logical_consistency",
                     "name": "Logical Consistency",
                     "description": "Check for logical consistency in statements",
-                    "keywords": ["logic", "consistent", "contradiction"],
+                    "keywords": ["logic", "consistency", "contradiction"],
                     "check_function": self._check_logical_consistency
                 }
             ]
         }
     
-    async def apply_rules(
-        self, 
-        hypothesis: str, 
-        question: str, 
-        domain: Optional[str] = None
-    ) -> ReasoningTrace:
-        """
-        Apply symbolic rules to validate the hypothesis.
-        
-        Args:
-            hypothesis: LLM-generated hypothesis
-            question: Original question
-            domain: Domain context
-            
-        Returns:
-            ReasoningTrace with rule check results
-        """
-        
-        if not domain or domain not in self.rule_sets:
-            domain = "general"
-        
-        rule_set = self.rule_sets[domain]
-        results = []
-        pydatalog_results = []
-        
-        # Apply traditional rule-based checks
-        for rule in rule_set["rules"]:
-            # Check if rule is relevant based on keywords
-            if self._is_rule_relevant(rule, question, hypothesis):
-                try:
-                    result = await rule["check_function"](question, hypothesis)
-                    results.append({
-                        "rule": rule["name"],
-                        "result": result,
-                        "passed": result.get("passed", False)
-                    })
-                except Exception as e:
-                    results.append({
-                        "rule": rule["name"],
-                        "result": {"error": str(e)},
-                        "passed": False
-                    })
-        
-        # Apply Prolog-based reasoning
-        if PROLOG_AVAILABLE:
-            try:
-                prolog_results = await self._apply_prolog_reasoning(question, hypothesis, domain)
-            except Exception as e:
-                prolog_results = [{"error": f"Prolog reasoning failed: {str(e)}"}]
-        else:
-            prolog_results = [{"info": "Prolog not available - using fallback reasoning methods"}]
-        
-        # Combine results
-        all_results = results + prolog_results
-        
-        # Calculate overall confidence based on rule results
-        passed_rules = sum(1 for r in results if r.get("passed", False))
-        total_rules = len(results)
-        confidence = passed_rules / total_rules if total_rules > 0 else 0.5
-        
-        output = f"Applied {total_rules} traditional rules and {len(prolog_results)} Prolog rules from {rule_set['name']}. "
-        output += f"Passed: {passed_rules}/{total_rules} traditional rules."
-        
-        if results:
-            output += "\n\nTraditional rule results:\n"
-            for result in results:
-                output += f"- {result['rule']}: {'PASS' if result['passed'] else 'FAIL'}\n"
-        
-        if prolog_results:
-            output += "\n\nProlog reasoning results:\n"
-            for result in prolog_results:
-                if "error" in result:
-                    output += f"- Error: {result['error']}\n"
-                else:
-                    output += f"- {result.get('rule', 'Unknown')}: {result.get('result', 'N/A')}\n"
-        
-        return ReasoningTrace(
-            stage=ReasoningStage.RULE_CHECK,
-            output=output,
-            confidence=confidence,
-            metadata={
-                "domain": domain,
-                "rule_set": rule_set["name"],
-                "traditional_results": results,
-                "prolog_results": prolog_results
-            }
-        )
-    
-    def _is_rule_relevant(self, rule: Dict[str, Any], question: str, hypothesis: str) -> bool:
-        """Check if a rule is relevant to the question/hypothesis."""
-        text = f"{question} {hypothesis}".lower()
-        keywords = [kw.lower() for kw in rule.get("keywords", [])]
-        
-        return any(keyword in text for keyword in keywords)
-    
-    async def _apply_prolog_reasoning(
-        self, 
-        question: str, 
-        hypothesis: str, 
-        domain: str
-    ) -> List[Dict[str, Any]]:
-        """
-        Apply Prolog-based reasoning for advanced rule evaluation.
-        
-        Args:
-            question: Original question
-            hypothesis: LLM-generated hypothesis
-            domain: Domain context
-            
-        Returns:
-            List of Prolog reasoning results
-        """
-        if not PROLOG_AVAILABLE:
-            return [{"info": "Prolog not available - using fallback reasoning methods"}]
-            
-        results = []
-        
-        try:
-            if domain == "healthcare":
-                results.extend(await self._apply_hipaa_prolog_rules(question, hypothesis))
-            elif domain == "finance":
-                results.extend(await self._apply_finance_prolog_rules(question, hypothesis))
-            else:
-                results.extend(await self._apply_general_prolog_rules(question, hypothesis))
-                
-        except Exception as e:
-            results.append({
-                "rule": "prolog_reasoning",
-                "result": f"Error in Prolog reasoning: {str(e)}",
-                "passed": False
-            })
-        
-        return results
-    
-    async def _apply_hipaa_prolog_rules(self, question: str, hypothesis: str) -> List[Dict[str, Any]]:
-        """Apply HIPAA-specific Prolog rules."""
-        if not PROLOG_AVAILABLE:
-            return [{"info": "Prolog not available for HIPAA rules"}]
-            
-        results = []
-        
-        # Extract entities from text
-        text = f"{question} {hypothesis}".lower()
-        
-        # Check for authentication
-        has_auth = any(term in text for term in ["authentication", "login", "password", "2fa"])
-        
-        # Check for authorization
-        has_authz = any(term in text for term in ["authorization", "permission", "role", "access control"])
-        
-        # Check for electronic PHI
-        has_ephi = any(term in text for term in ["electronic", "digital", "computer", "system", "database"])
-        
-        # Add facts to Prolog
-        if has_auth:
-            self.prolog.assertz('has_authentication(user)')
-        if has_authz:
-            self.prolog.assertz('has_authorization(user, resource)')
-        if has_ephi:
-            self.prolog.assertz('electronic_phi(resource)')
-        
-        # Query compliance
-        try:
-            compliance_result = list(self.prolog.query('hipaa_compliant(access_request)'))
-            results.append({
-                "rule": "HIPAA_Compliance_Prolog",
-                "result": f"Compliance check: {len(compliance_result) > 0}",
-                "passed": len(compliance_result) > 0
-            })
-        except Exception as e:
-            results.append({
-                "rule": "HIPAA_Compliance_Prolog",
-                "result": f"Query failed: {str(e)}",
-                "passed": False
-            })
-        
-        return results
-    
-    async def _apply_finance_prolog_rules(self, question: str, hypothesis: str) -> List[Dict[str, Any]]:
-        """Apply finance-specific Prolog rules."""
-        if not PROLOG_AVAILABLE:
-            return [{"info": "Prolog not available for finance rules"}]
-            
-        results = []
-        
-        # Extract numbers from text
-        numbers = re.findall(r'\d+(?:\.\d+)?', f"{question} {hypothesis}")
-        
-        if len(numbers) >= 2:
-            try:
-                debt = float(numbers[0])
-                equity = float(numbers[1])
-                
-                # Query debt-to-equity ratio
-                ratio_result = list(self.prolog.query(f'debt_to_equity_ratio({debt}, {equity}, Ratio)'))
-                if ratio_result:
-                    calculated_ratio = ratio_result[0]['Ratio']
-                    results.append({
-                        "rule": "Debt_to_Equity_Prolog",
-                        "result": f"Calculated ratio: {calculated_ratio}",
-                        "passed": True
-                    })
-                
-                # Query current ratio if we have more numbers
-                if len(numbers) >= 4:
-                    assets = float(numbers[2])
-                    liabilities = float(numbers[3])
-                    
-                    current_ratio_result = list(self.prolog.query(f'current_ratio({assets}, {liabilities}, Ratio)'))
-                    if current_ratio_result:
-                        calculated_current_ratio = current_ratio_result[0]['Ratio']
-                        results.append({
-                            "rule": "Current_Ratio_Prolog",
-                            "result": f"Calculated current ratio: {calculated_current_ratio}",
-                            "passed": True
-                        })
-                        
-            except Exception as e:
-                results.append({
-                    "rule": "Finance_Calculations_Prolog",
-                    "result": f"Calculation failed: {str(e)}",
-                    "passed": False
-                })
-        
-        return results
-    
-    async def _apply_general_prolog_rules(self, question: str, hypothesis: str) -> List[Dict[str, Any]]:
-        """Apply general Prolog rules for logical consistency."""
-        if not PROLOG_AVAILABLE:
-            return [{"info": "Prolog not available for general rules"}]
-            
-        results = []
-        
-        # Check for logical contradictions
-        text = hypothesis.lower()
-        contradictions = [
-            ("yes", "no"),
-            ("true", "false"),
-            ("compliant", "non-compliant"),
-            ("allowed", "prohibited")
-        ]
-        
-        has_contradiction = False
-        for pos, neg in contradictions:
-            if pos in text and neg in text:
-                has_contradiction = True
-                break
-        
-        # Add facts to Prolog
-        if has_contradiction:
-            self.prolog.assertz('contradicts(statement, statement)')
-        
-        # Query logical consistency
-        try:
-            consistency_result = list(self.prolog.query('logically_consistent(statement)'))
-            results.append({
-                "rule": "Logical_Consistency_Prolog",
-                "result": f"Logical consistency: {len(consistency_result) > 0}",
-                "passed": not has_contradiction
-            })
-        except Exception as e:
-            results.append({
-                "rule": "Logical_Consistency_Prolog",
-                "result": f"Consistency check failed: {str(e)}",
-                "passed": False
-            })
-        
-        return results
-    
-    # HIPAA Rule Check Functions
-    async def _check_hipaa_access_control(self, question: str, hypothesis: str) -> Dict[str, Any]:
+    # Rule check functions (simplified implementations)
+    async def _check_hipaa_access_control(self, text: str) -> Dict[str, Any]:
         """Check HIPAA access control compliance."""
-        text = f"{question} {hypothesis}".lower()
-        
-        # Simple keyword-based checks
-        has_access_control = any(term in text for term in ["access control", "authentication", "authorization"])
-        has_electronic_phi = any(term in text for term in ["electronic", "phi", "protected health information"])
-        
-        passed = has_access_control and has_electronic_phi
+        text_lower = text.lower()
+        has_access_control = any(term in text_lower for term in ["access control", "authentication", "authorization"])
+        has_electronic = any(term in text_lower for term in ["electronic", "digital", "computer"])
+        has_phi = any(term in text_lower for term in ["protected health information", "phi", "health data"])
         
         return {
-            "passed": passed,
-            "details": {
-                "access_control_mentioned": has_access_control,
-                "electronic_phi_mentioned": has_electronic_phi
+            "compliant": has_access_control and has_electronic and has_phi,
+            "requirements_met": {
+                "access_control": has_access_control,
+                "electronic_systems": has_electronic,
+                "phi_protection": has_phi
             }
         }
     
-    async def _check_hipaa_integrity(self, question: str, hypothesis: str) -> Dict[str, Any]:
+    async def _check_hipaa_integrity(self, text: str) -> Dict[str, Any]:
         """Check HIPAA integrity compliance."""
-        text = f"{question} {hypothesis}".lower()
-        
-        has_integrity = any(term in text for term in ["integrity", "unaltered", "unaltered", "protection"])
-        has_alteration_protection = any(term in text for term in ["alteration", "destruction", "modification"])
-        
-        passed = has_integrity or has_alteration_protection
+        text_lower = text.lower()
+        has_integrity = any(term in text_lower for term in ["integrity", "unaltered", "unaltered"])
+        has_protection = any(term in text_lower for term in ["protection", "safeguard", "secure"])
         
         return {
-            "passed": passed,
-            "details": {
-                "integrity_mentioned": has_integrity,
-                "alteration_protection_mentioned": has_alteration_protection
+            "compliant": has_integrity and has_protection,
+            "requirements_met": {
+                "integrity_protection": has_integrity,
+                "data_protection": has_protection
             }
         }
     
-    async def _check_hipaa_authentication(self, question: str, hypothesis: str) -> Dict[str, Any]:
+    async def _check_hipaa_authentication(self, text: str) -> Dict[str, Any]:
         """Check HIPAA authentication compliance."""
-        text = f"{question} {hypothesis}".lower()
-        
-        has_authentication = any(term in text for term in ["authentication", "verification", "identity"])
-        has_person_entity = any(term in text for term in ["person", "entity", "user", "individual"])
-        
-        passed = has_authentication and has_person_entity
+        text_lower = text.lower()
+        has_authentication = any(term in text_lower for term in ["authentication", "verification", "identity"])
+        has_person_entity = any(term in text_lower for term in ["person", "entity", "user", "individual"])
         
         return {
-            "passed": passed,
-            "details": {
-                "authentication_mentioned": has_authentication,
-                "person_entity_mentioned": has_person_entity
+            "compliant": has_authentication and has_person_entity,
+            "requirements_met": {
+                "authentication_procedures": has_authentication,
+                "person_entity_verification": has_person_entity
             }
         }
     
-    # Finance Rule Check Functions
-    async def _check_debt_to_equity(self, question: str, hypothesis: str) -> Dict[str, Any]:
+    async def _check_debt_to_equity(self, text: str) -> Dict[str, Any]:
         """Check debt-to-equity ratio calculation."""
-        # Extract numbers from text
-        numbers = re.findall(r'\d+(?:\.\d+)?', f"{question} {hypothesis}")
-        
+        numbers = re.findall(r'\d+(?:\.\d+)?', text)
         if len(numbers) >= 2:
             try:
                 debt = float(numbers[0])
                 equity = float(numbers[1])
-                
-                if equity != 0:
-                    calculated_ratio = debt / equity
-                    
-                    # Look for ratio in hypothesis
-                    ratio_match = re.search(r'(\d+(?:\.\d+)?)', hypothesis)
-                    if ratio_match:
-                        stated_ratio = float(ratio_match.group(1))
-                        tolerance = 0.01
-                        passed = abs(calculated_ratio - stated_ratio) < tolerance
-                        
-                        return {
-                            "passed": passed,
-                            "details": {
-                                "debt": debt,
-                                "equity": equity,
-                                "calculated_ratio": calculated_ratio,
-                                "stated_ratio": stated_ratio,
-                                "difference": abs(calculated_ratio - stated_ratio)
-                            }
-                        }
-            except (ValueError, ZeroDivisionError):
+                ratio = debt / equity if equity != 0 else float('inf')
+                return {
+                    "valid": True,
+                    "ratio": ratio,
+                    "interpretation": "High risk" if ratio > 2 else "Medium risk" if ratio > 1 else "Low risk"
+                }
+            except ValueError:
                 pass
         
-        return {"passed": False, "details": {"error": "Could not extract or calculate ratio"}}
+        return {"valid": False, "error": "Could not extract debt and equity values"}
     
-    async def _check_current_ratio(self, question: str, hypothesis: str) -> Dict[str, Any]:
+    async def _check_current_ratio(self, text: str) -> Dict[str, Any]:
         """Check current ratio calculation."""
-        # Similar to debt-to-equity but for current assets/liabilities
-        numbers = re.findall(r'\d+(?:\.\d+)?', f"{question} {hypothesis}")
-        
+        numbers = re.findall(r'\d+(?:\.\d+)?', text)
         if len(numbers) >= 2:
             try:
                 assets = float(numbers[0])
                 liabilities = float(numbers[1])
-                
-                if liabilities != 0:
-                    calculated_ratio = assets / liabilities
-                    
-                    ratio_match = re.search(r'(\d+(?:\.\d+)?)', hypothesis)
-                    if ratio_match:
-                        stated_ratio = float(ratio_match.group(1))
-                        tolerance = 0.01
-                        passed = abs(calculated_ratio - stated_ratio) < tolerance
-                        
-                        return {
-                            "passed": passed,
-                            "details": {
-                                "assets": assets,
-                                "liabilities": liabilities,
-                                "calculated_ratio": calculated_ratio,
-                                "stated_ratio": stated_ratio
-                            }
-                        }
-            except (ValueError, ZeroDivisionError):
+                ratio = assets / liabilities if liabilities != 0 else float('inf')
+                return {
+                    "valid": True,
+                    "ratio": ratio,
+                    "interpretation": "Good liquidity" if ratio > 1 else "Poor liquidity"
+                }
+            except ValueError:
                 pass
         
-        return {"passed": False, "details": {"error": "Could not extract or calculate ratio"}}
+        return {"valid": False, "error": "Could not extract current assets and liabilities"}
     
-    async def _check_roi(self, question: str, hypothesis: str) -> Dict[str, Any]:
+    async def _check_roi(self, text: str) -> Dict[str, Any]:
         """Check ROI calculation."""
-        numbers = re.findall(r'\d+(?:\.\d+)?', f"{question} {hypothesis}")
-        
+        numbers = re.findall(r'\d+(?:\.\d+)?', text)
         if len(numbers) >= 2:
             try:
                 gain = float(numbers[0])
                 cost = float(numbers[1])
-                
-                if cost != 0:
-                    calculated_roi = (gain - cost) / cost * 100
-                    
-                    roi_match = re.search(r'(\d+(?:\.\d+)?)%', hypothesis)
-                    if roi_match:
-                        stated_roi = float(roi_match.group(1))
-                        tolerance = 0.1
-                        passed = abs(calculated_roi - stated_roi) < tolerance
-                        
-                        return {
-                            "passed": passed,
-                            "details": {
-                                "gain": gain,
-                                "cost": cost,
-                                "calculated_roi": calculated_roi,
-                                "stated_roi": stated_roi
-                            }
-                        }
-            except (ValueError, ZeroDivisionError):
-                pass
-        
-        return {"passed": False, "details": {"error": "Could not extract or calculate ROI"}}
-    
-    # General Rule Check Functions
-    async def _check_mathematical_consistency(self, question: str, hypothesis: str) -> Dict[str, Any]:
-        """Check mathematical consistency."""
-        # Look for mathematical expressions and verify they're consistent
-        math_expressions = re.findall(r'[\d\+\-\*\/\(\)\=]+', hypothesis)
-        
-        if math_expressions:
-            try:
-                # Simple evaluation of expressions
-                for expr in math_expressions:
-                    if '=' in expr:
-                        left, right = expr.split('=', 1)
-                        try:
-                            left_val = eval(left.strip())
-                            right_val = eval(right.strip())
-                            if abs(left_val - right_val) > 0.001:
-                                return {"passed": False, "details": {"inconsistent_expression": expr}}
-                        except:
-                            pass
-                
-                return {"passed": True, "details": {"expressions_checked": len(math_expressions)}}
-            except:
-                pass
-        
-        return {"passed": True, "details": {"no_math_expressions": True}}
-    
-    async def _check_logical_consistency(self, question: str, hypothesis: str) -> Dict[str, Any]:
-        """Check logical consistency."""
-        # Look for logical contradictions
-        contradictions = [
-            ("yes", "no"),
-            ("true", "false"),
-            ("compliant", "non-compliant"),
-            ("allowed", "prohibited")
-        ]
-        
-        text = hypothesis.lower()
-        for pos, neg in contradictions:
-            if pos in text and neg in text:
+                roi = ((gain - cost) / cost) * 100 if cost != 0 else float('inf')
                 return {
-                    "passed": False, 
-                    "details": {"contradiction": f"{pos} vs {neg}"}
+                    "valid": True,
+                    "roi_percentage": roi,
+                    "interpretation": "Good investment" if roi > 0 else "Poor investment"
                 }
+            except ValueError:
+                pass
         
-        return {"passed": True, "details": {"no_contradictions": True}}
+        return {"valid": False, "error": "Could not extract gain and cost values"}
+    
+    async def _check_mathematical_consistency(self, text: str) -> Dict[str, Any]:
+        """Check mathematical consistency."""
+        return await self.validate_mathematical_consistency(text)
+    
+    async def _check_logical_consistency(self, text: str) -> Dict[str, Any]:
+        """Check logical consistency."""
+        statements = [s.strip() for s in text.split('.') if s.strip()]
+        return await self.check_logical_consistency(statements)
+
+
+# Global symbolic service instance
+symbolic_service = SymbolicService()
